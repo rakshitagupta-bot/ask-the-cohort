@@ -17,11 +17,10 @@ async function getQuestions(): Promise<Question[]> {
   const { data, error } = await supabase
     .from('questions')
     .select('*')
-    .order('upvotes', { ascending: false })
     .order('created_at', { ascending: false })
 
   if (error) return []
-  return data ?? []
+  return (data ?? []).sort((a, b) => (b.upvotes - b.downvotes) - (a.upvotes - a.downvotes))
 }
 
 export const dynamic = 'force-dynamic'
