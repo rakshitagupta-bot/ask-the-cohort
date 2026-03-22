@@ -66,6 +66,9 @@ export default async function Home() {
                   <p className="text-zinc-500 text-xs mt-2">
                     {q.name} · {timeAgo(q.created_at)}
                   </p>
+                  <p className="text-zinc-600 text-xs mt-1">
+                    Total votes = {q.upvotes - q.downvotes}
+                  </p>
                 </div>
               </div>
             ))
