@@ -9,6 +9,13 @@ export type Question = {
   created_at: string
 }
 
+export type Comment = {
+  id: string
+  question_id: string
+  comment_text: string
+  created_at: string
+}
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 

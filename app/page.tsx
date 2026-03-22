@@ -1,7 +1,8 @@
-import { supabase, type Question } from '@/lib/supabase'
+import { supabase, type Question, type Comment } from '@/lib/supabase'
 import QuestionForm from './QuestionForm'
 import UpvoteButton from './UpvoteButton'
 import DownvoteButton from './DownvoteButton'
+import CommentSection from './CommentSection'
 
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime()
@@ -23,10 +24,22 @@ async function getQuestions(): Promise<Question[]> {
   return (data ?? []).sort((a, b) => (b.upvotes - b.downvotes) - (a.upvotes - a.downvotes))
 }
 
+async function getComments(): Promise<Comment[]> {
+  const { data } = await supabase
+    .from('comments')
+    .select('*')
+    .order('created_at', { ascending: true })
+  return data ?? []
+}
+
 export const dynamic = 'force-dynamic'
 
 export default async function Home() {
-  const questions = await getQuestions()
+  const [questions, comments] = await Promise.all([getQuestions(), getComments()])
+  const commentsByQuestion = comments.reduce<Record<string, Comment[]>>((acc, c) => {
+    acc[c.question_id] = [...(acc[c.question_id] ?? []), c]
+    return acc
+  }, {})
 
   return (
     <main className="min-h-screen bg-zinc-950">
@@ -68,6 +81,7 @@ export default async function Home() {
                   <p className="text-zinc-600 text-xs mt-1">
                     Total votes = {q.upvotes - q.downvotes}
                   </p>
+                  <CommentSection questionId={q.id} initialComments={commentsByQuestion[q.id] ?? []} />
                 </div>
               </div>
             ))

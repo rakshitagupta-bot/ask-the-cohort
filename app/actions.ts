@@ -67,3 +67,12 @@ export async function downvoteQuestion(id: string) {
 
   revalidatePath('/')
 }
+
+export async function addComment(questionId: string, commentText: string) {
+  const text = commentText.trim()
+  if (!text) return
+
+  const supabase = getSupabase()
+  await supabase.from('comments').insert({ question_id: questionId, comment_text: text })
+  revalidatePath('/')
+}
