@@ -1,14 +1,7 @@
 'use server'
 
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@/lib/supabase-server'
 import { revalidatePath } from 'next/cache'
-
-function getSupabase() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
-}
 
 export async function submitQuestion(formData: FormData) {
   const name = (formData.get('name') as string)?.trim()
@@ -16,10 +9,8 @@ export async function submitQuestion(formData: FormData) {
 
   if (!name || !question_text) return { error: 'Name and question are required.' }
 
-  const supabase = getSupabase()
-  const { error } = await supabase
-    .from('questions')
-    .insert({ name, question_text })
+  const supabase = await createClient()
+  const { error } = await supabase.from('questions').insert({ name, question_text })
 
   if (error) return { error: error.message }
 
@@ -28,36 +19,37 @@ export async function submitQuestion(formData: FormData) {
 }
 
 export async function upvoteQuestion(id: string) {
-  const supabase = getSupabase()
-  const { error } = await supabase.rpc('increment_upvotes', { question_id: id })
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not signed in' }
 
-  if (error) {
-    // Fallback: fetch current count and increment manually
-    const { data } = await supabase
-      .from('questions')
-      .select('upvotes')
-      .eq('id', id)
-      .single()
+  // Try to insert a vote record — unique constraint blocks double voting
+  const { error } = await supabase
+    .from('votes')
+    .insert({ user_id: user.id, question_id: id, vote_type: 'up' })
 
-    if (data) {
-      await supabase
-        .from('questions')
-        .update({ upvotes: data.upvotes + 1 })
-        .eq('id', id)
-    }
-  }
+  if (error) return { error: 'Already voted' }
+
+  // Increment upvotes count
+  const { data } = await supabase.from('questions').select('upvotes').eq('id', id).single()
+  if (data) await supabase.from('questions').update({ upvotes: data.upvotes + 1 }).eq('id', id)
 
   revalidatePath('/')
 }
 
 export async function downvoteQuestion(id: string) {
-  const supabase = getSupabase()
-  const { data } = await supabase
-    .from('questions')
-    .select('upvotes, downvotes')
-    .eq('id', id)
-    .single()
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not signed in' }
 
+  const { error } = await supabase
+    .from('votes')
+    .insert({ user_id: user.id, question_id: id, vote_type: 'down' })
+
+  if (error) return { error: 'Already voted' }
+
+  const { data } = await supabase
+    .from('questions').select('upvotes, downvotes').eq('id', id).single()
   if (data) {
     await supabase
       .from('questions')
@@ -72,7 +64,7 @@ export async function addComment(questionId: string, commentText: string) {
   const text = commentText.trim()
   if (!text) return
 
-  const supabase = getSupabase()
+  const supabase = await createClient()
   await supabase.from('comments').insert({ question_id: questionId, comment_text: text })
   revalidatePath('/')
 }

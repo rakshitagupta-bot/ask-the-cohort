@@ -1,8 +1,11 @@
+import { createClient } from '@/lib/supabase-server'
 import { supabase, type Question, type Comment } from '@/lib/supabase'
 import QuestionForm from './QuestionForm'
 import UpvoteButton from './UpvoteButton'
 import DownvoteButton from './DownvoteButton'
 import CommentSection from './CommentSection'
+import AuthButton from './AuthButton'
+import SignIn from './SignIn'
 
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime()
@@ -35,6 +38,19 @@ async function getComments(): Promise<Comment[]> {
 export const dynamic = 'force-dynamic'
 
 export default async function Home() {
+  const serverClient = await createClient()
+  const { data: { user } } = await serverClient.auth.getUser()
+
+  // Fetch user's votes if logged in
+  let userVotes: Record<string, 'up' | 'down'> = {}
+  if (user) {
+    const { data: votes } = await serverClient
+      .from('votes')
+      .select('question_id, vote_type')
+      .eq('user_id', user.id)
+    votes?.forEach((v) => { userVotes[v.question_id] = v.vote_type })
+  }
+
   const [questions, comments] = await Promise.all([getQuestions(), getComments()])
   const commentsByQuestion = comments.reduce<Record<string, Comment[]>>((acc, c) => {
     acc[c.question_id] = [...(acc[c.question_id] ?? []), c]
@@ -46,13 +62,16 @@ export default async function Home() {
       <div className="max-w-2xl mx-auto px-4 py-12 flex flex-col gap-8">
 
         {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-zinc-100 tracking-tight">Ask your instructor</h1>
-          <p className="text-sm text-zinc-500 mt-1">Drop a question. Upvote what matters.</p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-zinc-100 tracking-tight">Ask your instructor</h1>
+            <p className="text-sm text-zinc-500 mt-1">Drop a question. Upvote what matters.</p>
+          </div>
+          {user && <AuthButton email={user.email!} />}
         </div>
 
-        {/* Form */}
-        <QuestionForm />
+        {/* Sign in or Question form */}
+        {user ? <QuestionForm /> : <SignIn />}
 
         {/* Feed */}
         <div className="flex flex-col gap-3">
@@ -68,8 +87,18 @@ export default async function Home() {
               >
                 {/* Vote buttons */}
                 <div className="flex gap-2">
-                  <UpvoteButton id={q.id} initialCount={q.upvotes} />
-                  <DownvoteButton id={q.id} initialCount={q.downvotes} />
+                  <UpvoteButton
+                    id={q.id}
+                    initialCount={q.upvotes}
+                    isLoggedIn={!!user}
+                    hasVoted={userVotes[q.id] === 'up'}
+                  />
+                  <DownvoteButton
+                    id={q.id}
+                    initialCount={q.downvotes}
+                    isLoggedIn={!!user}
+                    hasVoted={userVotes[q.id] === 'down'}
+                  />
                 </div>
 
                 {/* Content */}
