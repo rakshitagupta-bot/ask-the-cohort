@@ -35,7 +35,7 @@ export default async function Home() {
 
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold text-zinc-100 tracking-tight">Ask the Cohort</h1>
+          <h1 className="text-2xl font-bold text-zinc-100 tracking-tight">Ask your instructor</h1>
           <p className="text-sm text-zinc-500 mt-1">Drop a question. Upvote what matters.</p>
         </div>
 

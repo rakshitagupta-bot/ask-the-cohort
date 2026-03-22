@@ -5,8 +5,8 @@ import './globals.css'
 const geist = Geist({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Ask the Cohort',
-  description: 'A Q&A board for your cohort',
+  title: 'Ask your instructor',
+  description: 'A Q&A board for your instructor',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
