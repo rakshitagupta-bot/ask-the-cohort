@@ -1,6 +1,7 @@
 import { supabase, type Question } from '@/lib/supabase'
 import QuestionForm from './QuestionForm'
 import UpvoteButton from './UpvoteButton'
+import DownvoteButton from './DownvoteButton'
 
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime()
@@ -53,8 +54,11 @@ export default async function Home() {
                 key={q.id}
                 className="flex gap-4 bg-zinc-900 border border-zinc-800 rounded-2xl p-5"
               >
-                {/* Upvote */}
-                <UpvoteButton id={q.id} initialCount={q.upvotes} />
+                {/* Vote buttons */}
+                <div className="flex gap-2">
+                  <UpvoteButton id={q.id} initialCount={q.upvotes} />
+                  <DownvoteButton id={q.id} />
+                </div>
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">

@@ -49,3 +49,21 @@ export async function upvoteQuestion(id: string) {
 
   revalidatePath('/')
 }
+
+export async function downvoteQuestion(id: string) {
+  const supabase = getSupabase()
+  const { data } = await supabase
+    .from('questions')
+    .select('upvotes')
+    .eq('id', id)
+    .single()
+
+  if (data) {
+    await supabase
+      .from('questions')
+      .update({ upvotes: data.upvotes - 1 })
+      .eq('id', id)
+  }
+
+  revalidatePath('/')
+}
