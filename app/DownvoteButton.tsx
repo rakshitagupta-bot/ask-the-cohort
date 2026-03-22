@@ -5,25 +5,19 @@ import { downvoteQuestion } from './actions'
 
 export default function DownvoteButton({ id, initialCount }: { id: string; initialCount: number }) {
   const [count, setCount] = useState(initialCount)
-  const [voted, setVoted] = useState(false)
   const [isPending, startTransition] = useTransition()
 
   function handleDownvote() {
-    if (voted || isPending) return
+    if (isPending) return
     setCount((c) => c + 1)
-    setVoted(true)
     startTransition(() => downvoteQuestion(id))
   }
 
   return (
     <button
       onClick={handleDownvote}
-      disabled={voted || isPending}
-      className={`flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl border transition-colors min-w-[52px] ${
-        voted
-          ? 'border-red-500 bg-red-500/10 text-red-400'
-          : 'border-zinc-700 bg-zinc-800 text-zinc-400 hover:border-red-500 hover:text-red-400'
-      }`}
+      disabled={isPending}
+      className="flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl border transition-colors min-w-[52px] border-zinc-700 bg-zinc-800 text-zinc-400 hover:border-red-500 hover:text-red-400"
       aria-label="Downvote"
     >
       <svg

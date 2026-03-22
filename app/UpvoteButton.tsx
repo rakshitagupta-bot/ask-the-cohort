@@ -5,25 +5,19 @@ import { upvoteQuestion } from './actions'
 
 export default function UpvoteButton({ id, initialCount }: { id: string; initialCount: number }) {
   const [count, setCount] = useState(initialCount)
-  const [voted, setVoted] = useState(false)
   const [isPending, startTransition] = useTransition()
 
   function handleUpvote() {
-    if (voted || isPending) return
+    if (isPending) return
     setCount((c) => c + 1)
-    setVoted(true)
     startTransition(() => upvoteQuestion(id))
   }
 
   return (
     <button
       onClick={handleUpvote}
-      disabled={voted || isPending}
-      className={`flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl border transition-colors min-w-[52px] ${
-        voted
-          ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400'
-          : 'border-zinc-700 bg-zinc-800 text-zinc-400 hover:border-indigo-500 hover:text-indigo-400'
-      }`}
+      disabled={isPending}
+      className="flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl border transition-colors min-w-[52px] border-zinc-700 bg-zinc-800 text-zinc-400 hover:border-green-500 hover:text-green-400"
       aria-label="Upvote"
     >
       <svg
