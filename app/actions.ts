@@ -54,14 +54,14 @@ export async function downvoteQuestion(id: string) {
   const supabase = getSupabase()
   const { data } = await supabase
     .from('questions')
-    .select('upvotes')
+    .select('upvotes, downvotes')
     .eq('id', id)
     .single()
 
   if (data) {
     await supabase
       .from('questions')
-      .update({ upvotes: data.upvotes - 1 })
+      .update({ upvotes: data.upvotes - 1, downvotes: data.downvotes + 1 })
       .eq('id', id)
   }
 

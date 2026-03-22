@@ -57,7 +57,7 @@ export default async function Home() {
                 {/* Vote buttons */}
                 <div className="flex gap-2">
                   <UpvoteButton id={q.id} initialCount={q.upvotes} />
-                  <DownvoteButton id={q.id} />
+                  <DownvoteButton id={q.id} initialCount={q.downvotes} />
                 </div>
 
                 {/* Content */}

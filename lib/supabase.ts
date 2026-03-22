@@ -5,6 +5,7 @@ export type Question = {
   name: string
   question_text: string
   upvotes: number
+  downvotes: number
   created_at: string
 }
 

@@ -3,12 +3,14 @@
 import { useState, useTransition } from 'react'
 import { downvoteQuestion } from './actions'
 
-export default function DownvoteButton({ id }: { id: string }) {
+export default function DownvoteButton({ id, initialCount }: { id: string; initialCount: number }) {
+  const [count, setCount] = useState(initialCount)
   const [voted, setVoted] = useState(false)
   const [isPending, startTransition] = useTransition()
 
   function handleDownvote() {
     if (voted || isPending) return
+    setCount((c) => c + 1)
     setVoted(true)
     startTransition(() => downvoteQuestion(id))
   }
@@ -36,7 +38,7 @@ export default function DownvoteButton({ id }: { id: string }) {
           clipRule="evenodd"
         />
       </svg>
-      <span className="text-xs font-semibold invisible">0</span>
+      <span className="text-xs font-semibold tabular-nums">{count}</span>
     </button>
   )
 }
